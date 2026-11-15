@@ -51,7 +51,7 @@
         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
         android:textColor="@color/player_sheet_text_main"
         app:layout_constraintBottom_toTopOf="@+id/player_station_metadata"
-        app:layout_constraintEnd_toStartOf="@+id/player_play_button"
+        app:layout_constraintEnd_toStartOf="@+id/player_cast_button"
         app:layout_constraintStart_toEndOf="@+id/station_icon"
         app:layout_constraintTop_toTopOf="@+id/station_icon"
         tools:text="@string/sample_text_station_name" />
@@ -70,10 +70,32 @@
         android:textAppearance="@style/TextAppearance.Material3.BodySmall"
         android:textColor="@color/player_sheet_text_main"
         app:layout_constraintBottom_toBottomOf="@+id/station_icon"
-        app:layout_constraintEnd_toStartOf="@+id/player_play_button"
+        app:layout_constraintEnd_toStartOf="@+id/player_cast_button"
         app:layout_constraintStart_toEndOf="@+id/station_icon"
         app:layout_constraintTop_toBottomOf="@+id/player_station_name"
         tools:text="@string/sample_text_station_metadata" />
+
+    <ImageButton
+        android:id="@+id/player_cast_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/descr_player_cast_button"
+        android:padding="12dp"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="@+id/station_icon"
+        app:layout_constraintEnd_toStartOf="@+id/player_play_button"
+        app:layout_constraintTop_toTopOf="@+id/station_icon"
+        app:srcCompat="@drawable/ic_cast_24dp"
+        app:tint="@color/player_sheet_text_main" />
+
+    <androidx.mediarouter.app.MediaRouteButton
+        android:id="@+id/cast_route_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/player_play_button"

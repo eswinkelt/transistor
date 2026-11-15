@@ -26,6 +26,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.Group
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.mediarouter.app.MediaRouteButton
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -56,6 +57,8 @@ data class LayoutHolder(var rootView: View) {
     private var stationNameView: TextView
     private var metadataView: TextView
     var playButtonView: ImageButton
+    var castButtonView: ImageButton
+    var mediaRouteButton: MediaRouteButton
     var bufferingIndicator: ProgressBar
     private var sheetStreamingLinkHeadline: TextView
     private var sheetStreamingLinkView: TextView
@@ -86,6 +89,8 @@ data class LayoutHolder(var rootView: View) {
         stationNameView = rootView.findViewById(R.id.player_station_name)
         metadataView = rootView.findViewById(R.id.player_station_metadata)
         playButtonView = rootView.findViewById(R.id.player_play_button)
+        castButtonView = rootView.findViewById(R.id.player_cast_button)
+        mediaRouteButton = rootView.findViewById(R.id.cast_route_button)
         bufferingIndicator = rootView.findViewById(R.id.player_buffering_indicator)
         sheetStreamingLinkView = rootView.findViewById(R.id.sheet_streaming_link)
         sheetStreamingLinkHeadline = rootView.findViewById(R.id.sheet_streaming_link_headline)

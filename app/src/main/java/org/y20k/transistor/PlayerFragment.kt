@@ -51,6 +51,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.cast.framework.CastButtonFactory
 import kotlinx.coroutines.*
 import org.y20k.transistor.collection.CollectionAdapter
 import org.y20k.transistor.collection.CollectionViewModel
@@ -60,6 +61,7 @@ import org.y20k.transistor.dialogs.FindStationDialog
 import org.y20k.transistor.dialogs.YesNoDialog
 import org.y20k.transistor.extensions.isActive
 import org.y20k.transistor.helpers.*
+import org.y20k.transistor.playback.CastManager
 import org.y20k.transistor.playback.PlayerController
 import org.y20k.transistor.playback.PlayerService
 import org.y20k.transistor.ui.LayoutHolder
@@ -88,6 +90,7 @@ class PlayerFragment: Fragment(), CoroutineScope,
     private lateinit var layout: LayoutHolder
     private lateinit var collectionAdapter: CollectionAdapter
     private lateinit var playerController: PlayerController
+    private val castManager: CastManager = CastManager.instance
     private var collection: Collection = Collection()
     private var playerServiceConnected: Boolean = false
     private var onboarding: Boolean = false
@@ -100,6 +103,12 @@ class PlayerFragment: Fragment(), CoroutineScope,
 
     /* Overrides coroutineContext variable */
     override val coroutineContext: CoroutineContext get() = backgroundJob + Dispatchers.Main
+
+
+    /* Companion object */
+    companion object {
+        private const val CAST_DISCONNECTED_ALPHA = 0.55f
+    }
 
 
     /* Overrides onCreate from Fragment */
@@ -139,6 +148,7 @@ class PlayerFragment: Fragment(), CoroutineScope,
         val rootView: View = inflater.inflate(R.layout.fragment_player, container, false);
         layout = LayoutHolder(rootView)
         initializeViews()
+        setupCast()
 
         // convert old stations (one-time import)
         if (PreferencesHelper.isHouseKeepingNecessary()) {
@@ -158,6 +168,8 @@ class PlayerFragment: Fragment(), CoroutineScope,
         super.onStart()
         // connect to PlayerService
         mediaBrowser.connect()
+        // listen to Chromecast state
+        castManager.addListener(castListener)
     }
 
 
@@ -192,6 +204,12 @@ class PlayerFragment: Fragment(), CoroutineScope,
         // setup ui
         setupPlayer()
         setupList()
+        // keep the play button in sync with a running Cast session
+        if (castManager.isConnected) {
+            layout.togglePlayButton(
+                if (castManager.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
+            )
+        }
         // start watching for changes in shared preferences
         PreferencesHelper.registerPreferenceChangeListener(this as SharedPreferences.OnSharedPreferenceChangeListener)
         // toggle download progress indicator
@@ -217,6 +235,7 @@ class PlayerFragment: Fragment(), CoroutineScope,
         super.onStop()
         // (see "stay in sync with the MediaSession")
         if (this::playerController.isInitialized) playerController.unregisterCallback(mediaControllerCallback)
+        castManager.removeListener(castListener)
         mediaBrowser.disconnect()
         playerServiceConnected = false
     }
@@ -405,6 +424,65 @@ class PlayerFragment: Fragment(), CoroutineScope,
     }
 
 
+    /* Sets up Chromecast support */
+    private fun setupCast() {
+        castManager.init(activity as Context)
+
+        if (!castManager.isAvailable) {
+            layout.castButtonView.visibility = View.GONE
+            return
+        }
+
+        // MediaRouteButton owns discovery and the device chooser; the visible icon opens it.
+        CastButtonFactory.setUpMediaRouteButton(activity as Context, layout.mediaRouteButton)
+        layout.castButtonView.setOnClickListener {
+            layout.mediaRouteButton.showDialog()
+        }
+        layout.castButtonView.alpha = if (castManager.isConnected) 1f else CAST_DISCONNECTED_ALPHA
+    }
+
+
+    /* Listens to Chromecast state changes */
+    private val castListener = object : CastManager.Listener {
+
+        override fun onCastStateChanged(connected: Boolean, deviceName: String?) {
+            if (!this@PlayerFragment::layout.isInitialized) return
+
+            layout.castButtonView.alpha = if (connected) 1f else CAST_DISCONNECTED_ALPHA
+            if (!connected) {
+                // the receiver stopped: the next tap should start local playback again
+                playerState.playbackState = PlaybackStateCompat.STATE_STOPPED
+                layout.togglePlayButton(playerState.playbackState)
+            }
+        }
+
+        override fun onCastStarted(deviceName: String?) {
+            if (!this@PlayerFragment::layout.isInitialized) return
+            if (!this@PlayerFragment::playerController.isInitialized) return
+
+            // Hand the current station over to the receiver, local playback stops.
+            val station = CollectionHelper.getStation(collection, playerState.stationUuid)
+            if (station.isValid()) {
+                playerController.stop()
+                castManager.play(station)
+                layout.togglePlayButton(PlaybackStateCompat.STATE_PLAYING)
+            }
+        }
+
+        override fun onCastPlaybackChanged(isPlaying: Boolean) {
+            if (!this@PlayerFragment::layout.isInitialized) return
+
+            layout.togglePlayButton(if (isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_STOPPED)
+        }
+
+        override fun onCastFailed() {
+            activity?.let {
+                Toast.makeText(it, R.string.toastmessage_cast_connection_error, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+
     /* Builds playback controls - used after connected to player service */
     @SuppressLint("ClickableViewAccessibility") // it is probably okay to suppress this warning - the OnTouchListener on the time played view does only toggle the time duration / remaining display
     private fun buildPlaybackControls() {
@@ -414,8 +492,17 @@ class PlayerFragment: Fragment(), CoroutineScope,
 
         // main play/pause button
         layout.playButtonView.setOnClickListener {
-            onPlayButtonTapped(playerState.stationUuid, playerState.playbackState)
-            //onPlayButtonTapped(playerState.stationUuid, playerController.getPlaybackState().state) // todo remove
+            if (castManager.isConnected) {
+                // the receiver is playing, not the local ExoPlayer
+                if (castManager.hasMedia) {
+                    castManager.togglePlayback()
+                } else {
+                    val station = CollectionHelper.getStation(collection, playerState.stationUuid)
+                    if (station.isValid()) castManager.play(station)
+                }
+            } else {
+                onPlayButtonTapped(playerState.stationUuid, playerState.playbackState)
+            }
         }
 
         // register a callback to stay in sync
@@ -456,9 +543,11 @@ class PlayerFragment: Fragment(), CoroutineScope,
         if (!station.isValid() && collection.stations.isNotEmpty()) station = collection.stations[0]
         layout.updatePlayerViews(activity as Context, station, playerState.playbackState)
         // start / stop playback
-        when (startPlayback) {
-            true -> playerController.play(station.uuid)
-            false -> playerController.stop()
+        when {
+            castManager.isConnected && startPlayback -> castManager.play(station)
+            castManager.isConnected -> castManager.stop()
+            startPlayback -> playerController.play(station.uuid)
+            else -> playerController.stop()
         }
     }
 

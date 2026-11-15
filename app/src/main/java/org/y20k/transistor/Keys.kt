@@ -140,6 +140,13 @@ object Keys {
     const val FILE_TYPE_AUDIO: Int  = 20
     const val FILE_TYPE_IMAGE: Int  = 3
 
+    // MIME types accepted by the Cast Default Media Receiver
+    const val CAST_MIME_TYPE_MPEG = "audio/mpeg"
+    const val CAST_MIME_TYPE_AAC = "audio/aac"
+    const val CAST_MIME_TYPE_OGG = "audio/ogg"
+    const val CAST_MIME_TYPE_FLAC = "audio/flac"
+    const val CAST_MIME_TYPE_HLS = "application/x-mpegurl"
+
     // mime types and charsets and file extensions
     const val CHARSET_UNDEFINDED = "undefined"
     const val MIME_TYPE_JPG = "image/jpeg"

@@ -26,4 +26,6 @@
 
 -keep public class org.y20k.transistor.playback.PlayerService  { *; }
 
+-keep public class org.y20k.transistor.playback.CastOptionsProvider  { *; }
+
 -keep public class org.y20k.transistor.search.RadioBrowserResult  { *; }

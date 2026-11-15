@@ -143,7 +143,9 @@
     <string name="descr_card_small_play_button">Start/Stopp</string>
     <string name="descr_card_starred_station">Markierter Sender</string>
     <string name="toastmessage_sleep_timer_unable_to_start">Bitte zuerst die Wiedergabe starten.</string>
+    <string name="toastmessage_cast_connection_error">Verbindung zum Cast-Gerät fehlgeschlagen.</string>
     <string name="descr_player_playback_button">Start/Pause</string>
+    <string name="descr_player_cast_button">Auf Chromecast wiedergeben</string>
     <string name="descr_player_station_image">Senderbild</string>
     <string name="descr_expanded_player_sleep_timer_start_button">Schlaf-Timer starten</string>
     <string name="descr_expanded_player_sleep_timer_remaining_time">Verbleibende Zeit des Schlaf-Timers</string>

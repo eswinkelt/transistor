@@ -119,6 +119,7 @@
     <string name="descr_expanded_player_sleep_timer_start_button">Start sleep timer</string>
     <string name="descr_player_station_image">Station image</string>
     <string name="descr_player_playback_button">Play/pause</string>
+    <string name="descr_player_cast_button">Play on a Cast device</string>
     <!-- Onboarding -->
     <string name="onboarding_app_description">Radio App</string>
     <string name="onboarding_app_get_started">Get started</string>
@@ -213,6 +214,7 @@
     <string name="toastmessage_timer_cancelled">Sleep timer cancelled.</string>
     <string name="toastmessage_timer_duration_increased">Duration increased.</string>
     <string name="toastmessage_sleep_timer_unable_to_start">Please start playback first.</string>
+    <string name="toastmessage_cast_connection_error">Could not connect to the Cast device.</string>
     <string name="toastalert_unable_to_connect">Unable to connect. Device does not have an internet connection or stream may be outdated.</string>
     <string name="toastalert_rename_unsuccessful">Unable to rename station. Please choose a different name.</string>
     <string name="toastalert_delete_successful">The station was removed.</string>

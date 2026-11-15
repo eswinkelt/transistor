@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
 
 
     <application
@@ -30,6 +31,11 @@
             android:resource="@xml/automotive_app_desc"/>
         <meta-data android:name="com.google.android.gms.car.notification.SmallIcon"
             android:resource="@mipmap/ic_launcher" />
+
+        <!-- GOOGLE CAST SUPPORT -->
+        <meta-data
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            android:value="org.y20k.transistor.playback.CastOptionsProvider" />
 
         <activity
             android:name=".PlayerServiceStarterActivity"
